@@ -100,11 +100,11 @@ Views.Sidebar = Marionette.CollectionView.extend({
 
     getChildView: function(item) {
         if (item.get("type") === "pdf") {
-            return Views.PdfTile
+            return Views.PdfTile;
         } else if (item.get("type") === "text") {
-            return Views.TextTile
+            return Views.TextTile;
         } else  if (item.get("type") === "header") {
-            return Views.HeaderTile
+            return Views.HeaderTile;
         }
     }
 });
