@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# USAGE: mkthumb.sh [-s] <abs_path> [abs_path]
+# create nautilus thumbnails for images and PDFs in the directories (and their
+# sub-directories) given as parameters.
+# -s is used to skip generating thumbnails that already exist
+
+skip_existing=0
+if [[ "${1}" == "-s" ]]; then
+  skip_existing=1
+  shift
+fi
+
+mkthumb() {
+  file="${1}"
+  dest="${2}"
+  convert -thumbnail 128x128 "${file}[0]" "${dest}" &>/dev/null
+  if (( $? == 0 )); then
+    echo "OK   ${file}"
+  else
+    echo "FAIL ${file}"
+  fi
+}
+
+OLDIFS="${IFS}"
+IFS=$'\n'
+for dir in $@; do
+  echo "Processing directory ${dir}"
+  for file in $(find "${dir}" -regextype posix-egrep -iregex \
+  '.*\.(pdf|png|jpg|gif|jpeg)'); do
+    md5=$(echo -n "${file}" | perl -MURI::file -MDigest::MD5=md5_hex -ne \
+          'print md5_hex(URI::file->new($_));')
+    dest="${HOME}/.thumbnails/normal/${md5}.png"
+    if [[ -f "${dest}" ]]; then
+      if [[ "${skip_existing}" == "0" ]]; then
+        mkthumb "${file}" "${dest}"
+      else
+        echo "SKIP ${file}"
+      fi
+    else
+      mkthumb "${file}" "${dest}"
+    fi
+  done
+done
+IFS="${OLDIFS}"
